@@ -1877,130 +1877,232 @@ void pad_dec_picture(VideoParameters *p_Vid, StorablePicture *dec_picture)
  */
 void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 {
-  InputParameters *p_Inp = p_Vid->p_Inp;
-  SNRParameters   *snr   = p_Vid->snr;
-  char yuv_types[4][6]= {"4:0:0","4:2:0","4:2:2","4:4:4"};
+    InputParameters *p_Inp = p_Vid->p_Inp;
+    SNRParameters   *snr   = p_Vid->snr;
+    char yuv_types[4][6]= {"4:0:0","4:2:0","4:2:2","4:4:4"};
 #if (DISABLE_ERC == 0)
-  int ercStartMB;
-  int ercSegment;
-  frame recfr;
+    int ercStartMB;
+    int ercSegment;
+    frame recfr;
 #endif
-  int structure, frame_poc, slice_type, refpic, qp, pic_num, chroma_format_idc, is_idr;
-
-  int64 tmp_time;                   // time used by decoding the last frame
-  char   yuvFormat[10];
-
-  // return if the last picture has already been finished
-  if (*dec_picture==NULL || (p_Vid->num_dec_mb != p_Vid->PicSizeInMbs && (p_Vid->yuv_format != YUV444 || !p_Vid->separate_colour_plane_flag)))
-  {
-    return;
-  }
-
-#if (DISABLE_ERC == 0)
-  recfr.p_Vid = p_Vid;
-  recfr.yptr = &(*dec_picture)->imgY[0][0];
-  if ((*dec_picture)->chroma_format_idc != YUV400)
-  {
-    recfr.uptr = &(*dec_picture)->imgUV[0][0][0];
-    recfr.vptr = &(*dec_picture)->imgUV[1][0][0];
-  }
-
-  //! this is always true at the beginning of a picture
-  ercStartMB = 0;
-  ercSegment = 0;
-
-  //! mark the start of the first segment
-  if (!(*dec_picture)->mb_aff_frame_flag)
-  {
-    int i;
-    ercStartSegment(0, ercSegment, 0 , p_Vid->erc_errorVar);
-    //! generate the segments according to the macroblock map
-    for(i = 1; i < (int) (*dec_picture)->PicSizeInMbs; ++i)
+    int structure, frame_poc, slice_type, refpic, qp, pic_num, chroma_format_idc, is_idr;
+    
+    int64 tmp_time;                   // time used by decoding the last frame
+    char   yuvFormat[10];
+    
+    // return if the last picture has already been finished
+    if (*dec_picture==NULL || (p_Vid->num_dec_mb != p_Vid->PicSizeInMbs && (p_Vid->yuv_format != YUV444 || !p_Vid->separate_colour_plane_flag)))
     {
-      if(p_Vid->mb_data[i].ei_flag != p_Vid->mb_data[i-1].ei_flag)
-      {
-        ercStopSegment(i-1, ercSegment, 0, p_Vid->erc_errorVar); //! stop current segment
-
-        //! mark current segment as lost or OK
+        return;
+    }
+    
+#if (DISABLE_ERC == 0)
+    recfr.p_Vid = p_Vid;
+    recfr.yptr = &(*dec_picture)->imgY[0][0];
+    if ((*dec_picture)->chroma_format_idc != YUV400)
+    {
+        recfr.uptr = &(*dec_picture)->imgUV[0][0][0];
+        recfr.vptr = &(*dec_picture)->imgUV[1][0][0];
+    }
+    
+    //! this is always true at the beginning of a picture
+    ercStartMB = 0;
+    ercSegment = 0;
+    
+    //! mark the start of the first segment
+    if (!(*dec_picture)->mb_aff_frame_flag)
+    {
+        int i;
+        ercStartSegment(0, ercSegment, 0 , p_Vid->erc_errorVar);
+        //! generate the segments according to the macroblock map
+        for(i = 1; i < (int) (*dec_picture)->PicSizeInMbs; ++i)
+        {
+            if(p_Vid->mb_data[i].ei_flag != p_Vid->mb_data[i-1].ei_flag)
+            {
+                ercStopSegment(i-1, ercSegment, 0, p_Vid->erc_errorVar); //! stop current segment
+                
+                //! mark current segment as lost or OK
+                if(p_Vid->mb_data[i-1].ei_flag)
+                    ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
+                else
+                    ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
+                
+                ++ercSegment;  //! next segment
+                ercStartSegment(i, ercSegment, 0 , p_Vid->erc_errorVar); //! start new segment
+                ercStartMB = i;//! save start MB for this segment
+            }
+        }
+        //! mark end of the last segment
+        ercStopSegment((*dec_picture)->PicSizeInMbs-1, ercSegment, 0, p_Vid->erc_errorVar);
         if(p_Vid->mb_data[i-1].ei_flag)
-          ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
+            ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
         else
-          ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
-
-        ++ercSegment;  //! next segment
-        ercStartSegment(i, ercSegment, 0 , p_Vid->erc_errorVar); //! start new segment
-        ercStartMB = i;//! save start MB for this segment
-      }
+            ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
+        
+        //! call the right error concealment function depending on the frame type.
+        p_Vid->erc_mvperMB /= (*dec_picture)->PicSizeInMbs;
+        
+        p_Vid->erc_img = p_Vid;
+        
+        if((*dec_picture)->slice_type == I_SLICE || (*dec_picture)->slice_type == SI_SLICE) // I-frame
+            ercConcealIntraFrame(p_Vid, &recfr, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar);
+        else
+            ercConcealInterFrame(&recfr, p_Vid->erc_object_list, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar, (*dec_picture)->chroma_format_idc);
     }
-    //! mark end of the last segment
-    ercStopSegment((*dec_picture)->PicSizeInMbs-1, ercSegment, 0, p_Vid->erc_errorVar);
-    if(p_Vid->mb_data[i-1].ei_flag)
-      ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
-    else
-      ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
-
-    //! call the right error concealment function depending on the frame type.
-    p_Vid->erc_mvperMB /= (*dec_picture)->PicSizeInMbs;
-
-    p_Vid->erc_img = p_Vid;
-
-    if((*dec_picture)->slice_type == I_SLICE || (*dec_picture)->slice_type == SI_SLICE) // I-frame
-      ercConcealIntraFrame(p_Vid, &recfr, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar);
-    else
-      ercConcealInterFrame(&recfr, p_Vid->erc_object_list, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar, (*dec_picture)->chroma_format_idc);
-  }
 #endif
-
-  if(!p_Vid->iDeblockMode && (p_Vid->bDeblockEnable & (1<<(*dec_picture)->used_for_reference)))
-  {
-    //deblocking for frame or field
-    if( (p_Vid->separate_colour_plane_flag != 0) )
+    
+    if(!p_Vid->iDeblockMode && (p_Vid->bDeblockEnable & (1<<(*dec_picture)->used_for_reference)))
     {
-      int nplane;
-      int colour_plane_id = p_Vid->ppSliceList[0]->colour_plane_id;
-      for( nplane=0; nplane<MAX_PLANE; ++nplane )
-      {
-        p_Vid->ppSliceList[0]->colour_plane_id = nplane;
-        change_plane_JV( p_Vid, nplane, NULL );
-        DeblockPicture( p_Vid, *dec_picture );
-      }
-      p_Vid->ppSliceList[0]->colour_plane_id = colour_plane_id;
-      make_frame_picture_JV(p_Vid);
+        //deblocking for frame or field
+        if( (p_Vid->separate_colour_plane_flag != 0) )
+        {
+            int nplane;
+            int colour_plane_id = p_Vid->ppSliceList[0]->colour_plane_id;
+            for( nplane=0; nplane<MAX_PLANE; ++nplane )
+            {
+                p_Vid->ppSliceList[0]->colour_plane_id = nplane;
+                change_plane_JV( p_Vid, nplane, NULL );
+                DeblockPicture( p_Vid, *dec_picture );
+            }
+            p_Vid->ppSliceList[0]->colour_plane_id = colour_plane_id;
+            make_frame_picture_JV(p_Vid);
+        }
+        else
+        {
+            DeblockPicture( p_Vid, *dec_picture );
+        }
     }
     else
     {
-      DeblockPicture( p_Vid, *dec_picture );
+        if( (p_Vid->separate_colour_plane_flag != 0) )
+        {
+            make_frame_picture_JV(p_Vid);
+        }
     }
-  }
-  else
-  {
-    if( (p_Vid->separate_colour_plane_flag != 0) )
-    {
-      make_frame_picture_JV(p_Vid);
-    }
-  }
-
-  if ((*dec_picture)->mb_aff_frame_flag)
-    MbAffPostProc(p_Vid);
-
-  if (p_Vid->structure == FRAME)         // buffer mgt. for frame mode
-    frame_postprocessing(p_Vid);
-  else
-    field_postprocessing(p_Vid);   // reset all interlaced variables
+    
+    if ((*dec_picture)->mb_aff_frame_flag)
+        MbAffPostProc(p_Vid);
+    
+    if (p_Vid->structure == FRAME)         // buffer mgt. for frame mode
+        frame_postprocessing(p_Vid);
+    else
+        field_postprocessing(p_Vid);   // reset all interlaced variables
 #if (MVC_EXTENSION_ENABLE)
-  if((*dec_picture)->used_for_reference || ((*dec_picture)->inter_view_flag == 1))
-    pad_dec_picture(p_Vid, *dec_picture);
+    if((*dec_picture)->used_for_reference || ((*dec_picture)->inter_view_flag == 1))
+        pad_dec_picture(p_Vid, *dec_picture);
 #else
-  if((*dec_picture)->used_for_reference)
-    pad_dec_picture(p_Vid, *dec_picture);
+    if((*dec_picture)->used_for_reference)
+        pad_dec_picture(p_Vid, *dec_picture);
 #endif
-  structure  = (*dec_picture)->structure;
-  slice_type = (*dec_picture)->slice_type;
-  frame_poc  = (*dec_picture)->frame_poc;  
-  refpic     = (*dec_picture)->used_for_reference;
-  qp         = (*dec_picture)->qp;
-  pic_num    = (*dec_picture)->pic_num;
-  is_idr     = (*dec_picture)->idr_flag;
+    structure  = (*dec_picture)->structure;
+    slice_type = (*dec_picture)->slice_type;
+    frame_poc  = (*dec_picture)->frame_poc;
+    refpic     = (*dec_picture)->used_for_reference;
+    qp         = (*dec_picture)->qp;
+    pic_num    = (*dec_picture)->pic_num;
+    is_idr     = (*dec_picture)->idr_flag;
+    
+    
+    // FELIX INJECTS before dec_picture is reset to NULL
+    
+    
+    //        struct pic_motion_params **mv_info = (*dec_picture)->mv_info;
+    __builtin_dump_struct((*dec_picture), &printf);
+    //
+    //        for (int i = 0; (*dec_picture)->mv_info[i] != NULL; i++) {
+    //            printf("%i \n", i);
+    //            __builtin_dump_struct((*dec_picture)->mv_info[i], &printf);
+    //        }
+    
+    
+    fprintf(stdout, "TIS WORKING???");
+    
+    //    for (int i = 0; i < 64; i++) {
+    //        for (int j = 0; j < 32; j++) {
+    //            fprintf(stdout, "%d ", p_Vid->pNextSlice->cof[1][j][i]);
+    //
+    //        }
+    //
+    
+    
+    //        fprintf(stdout, "%d ", p_Vid->pNextSlice->cof[i]);
+    //        fprintf(stdout, "\n");
+    //      }
+    
+    
+    int mv[3];
+    int mm, nn;
+    int i=0;
+    int j, y, x, mb_height, mb_width, ii=0, jj=0;
+    int multiplier;
+    
+    mb_width = (*dec_picture)->PicWidthInMbs;
+    mb_height = (*dec_picture)->PicSizeInMbs/(*dec_picture)->PicWidthInMbs;
+    
+    multiplier = BLOCK_SIZE;
+    
+    int cnt = 1;
+    for(i=0;i<mb_height*4;i++)
+    {
+        mm = i * BLOCK_SIZE;
+        for(j=0;j<mb_width*4;j++)
+        {
+            
+//            fprintf(stdout, "cnt: %d\n", cnt++);
+            
+            nn = j * BLOCK_SIZE;
+            
+            mv[0] = (*dec_picture)->mv_info[i][j].mv[LIST_0].mv_x ;
+            mv[1] = (*dec_picture)->mv_info[i][j].mv[LIST_0].mv_y ;
+            mv[2] = (*dec_picture)->mv_info[i][j].ref_idx[LIST_0] ;
+            
+            // so mv[2], I have no idea what it does, so we're ignoring.
+//            fprintf(stdout, "List 0 - x: %i y: %i   |\n", mv[0], mv[1]);
+            
+            mv[0] = (*dec_picture)->mv_info[i][j].mv[LIST_1].mv_x ;
+            mv[1] = (*dec_picture)->mv_info[i][j].mv[LIST_1].mv_y ;
+            mv[2] = (*dec_picture)->mv_info[i][j].ref_idx[LIST_1] ;
+            
+//            fprintf(stdout, "List 1 - x: %i y: %i   |\n", mv[0], mv[1]);
+            
+
+        }
+    }
+    
+    
+     
+     
+    fprintf(stdout, "TIS WORKING 2 ???");
+    
+     
+//        fprintf(stdout, "%u", (*mv_info)->mv[0] )  ;
+     // Iterate through the array of pointers until a NULL pointer is encountered
+     
+     /*
+      // This leads to seg fault. Possibly b/c idr (Instantaneous Decoder Refresh, which contains I-frame and SI-frames
+      // (switching frames, for different bitrate streaming???)
+      // do not have MVs
+      
+     for (int i = 0; i < 1; i++) {
+         printf("Motion Vectors for PicMotionParams [%d]:\n", i);
+         
+         
+         struct pic_motion_params **mv_info = (*dec_picture)->mv_info;
+         
+         if(mv_info == NULL) break;
+         if(mv_info[i] == NULL) break;
+         if (mv_info[i] == NULL) break;
+//             since array has two motion vectors (assuming from definition)
+         printf("  MV[%d]: x = %d, y = %d\n", 0, mv_info[i]->mv[0].mv_x, mv_info[i]->mv[0].mv_y);
+         printf("  MV[%d]: x = %d, y = %d\n", 1, mv_info[i]->mv[1].mv_x, mv_info[i]->mv[1].mv_y);
+     }
+      */
+ 
+     
+     
+     
+     //
+    
 
   chroma_format_idc = (*dec_picture)->chroma_format_idc;
 #if MVC_EXTENSION_ENABLE
@@ -2087,8 +2189,11 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
         
         // Felix Injects own report
         
+//        struct pic_motion_params **mv_info = (*dec_picture)->mv_info;
+//        __builtin_dump_struct((*dec_picture), &printf);
         
-
+        
+        
 //        fprintf(stdout, "%u", (*mv_info)->mv[0] )  ;
         // Iterate through the array of pointers until a NULL pointer is encountered
         
@@ -2204,7 +2309,6 @@ void ercWriteMBMODEandMV(Macroblock *currMB)
     write_to_file(size_of_buf, buf);
     
     
-    fflush(stdin);
     
     // End FG Injects
 

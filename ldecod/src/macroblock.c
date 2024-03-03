@@ -361,9 +361,9 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
 {
     // Start Felix Injects Numbering MB
     
-    printf("pix_x: %i pix_y: %i\n", currMB->pix_x, currMB->pix_y);
-    printf("block_x: %i block_y: %i\n", currMB->block_x, currMB->block_y);
-    printf("subblock_x: %i subblock_y: %i\n", currMB->subblock_x, currMB->subblock_y);
+//    printf("pix_x: %i pix_y: %i\n", currMB->pix_x, currMB->pix_y);
+//    printf("block_x: %i block_y: %i\n", currMB->block_x, currMB->block_y);
+//    printf("subblock_x: %i subblock_y: %i\n", currMB->subblock_x, currMB->subblock_y);
     
     
     // End Felix Injects Numbering MB
@@ -415,7 +415,7 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
         
         
         // Start Felix Injects, Motion Vector
-        printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
+//        printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
         
         
         // End Felix Injects
@@ -505,7 +505,7 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
                 
                 
                 // Start Felix Injects, Motion Vector
-                printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
+//                printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
                 
                 
                 // End Felix Injects
@@ -538,12 +538,22 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
         }
       }
     }
+      
+      // Start Felix Injects, reading MV Info while it's still value
+//      printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
+      
+//      currMB->p_Slice->dec_picture->mv_info;
+      
+      
+      // End Felix Injects
+      
+      
   }
     
     
     // Start Felix Injects Add Space
     
-    printf("\n\n");
+//    printf("\n\n");
     
     
     
