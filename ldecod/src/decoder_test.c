@@ -242,12 +242,17 @@ int main(int argc, char **argv)
   //decoding;
   do
   {
-    iRet = DecodeOneFrame(&pDecPicList);
+//      fprintf(stdout, "Reached Here FIRST\n");
+    iRet = DecodeOneFrame(&pDecPicList);        // this is where the printing every frame is happening
+//      fprintf(stdout, "AGAIN\n");
     if(iRet==DEC_EOS || iRet==DEC_SUCCEED)
     {
+        
       //process the decoded picture, output or display;
       iFramesOutput += WriteOneFrame(pDecPicList, hFileDecOutput0, hFileDecOutput1, 0);
       iFramesDecoded++;
+
+        
     }
     else
     {

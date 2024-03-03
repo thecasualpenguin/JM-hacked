@@ -2070,6 +2070,12 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 
     if (p_Inp->silent == FALSE)
     {
+        
+        // Felix Finds: This is where the report are be outputted!!! 
+        // Meaning, everything that needs to be extracted
+        // has been extracted at this point
+        // and I could just parse the structures and get decoded info, in complete form
+        
       SNRParameters   *snr = p_Vid->snr;
       if (p_Vid->p_ref != -1)
         fprintf(stdout,"%05d(%s%5d %5d %5d %8.4f %8.4f %8.4f  %s %7d\n",
@@ -2077,6 +2083,39 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
       else
         fprintf(stdout,"%05d(%s%5d %5d %5d                             %s %7d\n",
         p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, yuvFormat, (int)tmp_time);
+    
+        
+        // Felix Injects own report
+        
+        
+
+//        fprintf(stdout, "%u", (*mv_info)->mv[0] )  ;
+        // Iterate through the array of pointers until a NULL pointer is encountered
+        
+        /*
+         // This leads to seg fault. Possibly b/c idr (Instantaneous Decoder Refresh, which contains I-frame and SI-frames
+         // (switching frames, for different bitrate streaming???)
+         // do not have MVs
+         
+        for (int i = 0; i < 1; i++) {
+            printf("Motion Vectors for PicMotionParams [%d]:\n", i);
+            
+            
+            struct pic_motion_params **mv_info = (*dec_picture)->mv_info;
+            
+            if(mv_info == NULL) break;
+            if(mv_info[i] == NULL) break;
+            if (mv_info[i] == NULL) break;
+//             since array has two motion vectors (assuming from definition)
+            printf("  MV[%d]: x = %d, y = %d\n", 0, mv_info[i]->mv[0].mv_x, mv_info[i]->mv[0].mv_y);
+            printf("  MV[%d]: x = %d, y = %d\n", 1, mv_info[i]->mv[1].mv_x, mv_info[i]->mv[1].mv_y);
+        }
+         */
+        
+        
+        // End Felix Injects
+    
+        
     }
     else
       fprintf(stdout,"Completed Decoding frame %05d.\r",snr->frame_ctr);
@@ -2135,6 +2174,7 @@ char* function_that_makes_pretty_output(objectBuffer_t *buf) {
  */
 void ercWriteMBMODEandMV(Macroblock *currMB)
 {
+    
 
   VideoParameters *p_Vid = currMB->p_Vid;
   int i, ii, jj, currMBNum = currMB->mbAddrX; //p_Vid->currentSlice->current_mb_nr;
@@ -2148,7 +2188,7 @@ void ercWriteMBMODEandMV(Macroblock *currMB)
     int size_of_buf = 1000;
     char *buf = malloc(size_of_buf*sizeof(char));
     
-    sprintf(buf, "frame_num: %i frame_poc: %i\n", dec_picture->frame_num, dec_picture->frame_poc);
+    sprintf(buf, "frame_num: %i frame_poc: %i display_order: %i\n", dec_picture->frame_num, dec_picture->frame_poc, dec_picture->frame_poc/2);
     write_to_file(100, buf);
     
     
@@ -2163,6 +2203,8 @@ void ercWriteMBMODEandMV(Macroblock *currMB)
     
     write_to_file(size_of_buf, buf);
     
+    
+    fflush(stdin);
     
     // End FG Injects
 
@@ -2283,6 +2325,8 @@ void ercWriteMBMODEandMV(Macroblock *currMB)
         
         // Felix Prints
         char buf[100];
+
+//        printf("ii %d, jj %d, mbx %d\n", ii, jj, mbx);
         
         // find mode
         char *mode_name = (pRegion->regionMode == REGMODE_INTRA ? "DEFAULT_INTRA"  :

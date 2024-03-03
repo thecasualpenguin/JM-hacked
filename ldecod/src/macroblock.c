@@ -359,6 +359,18 @@ static void readMBRefPictureIdx (SyntaxElement *currSE, DataPartition *dP, Macro
  */
 static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macroblock *currMB, int list, int step_h0, int step_v0)
 {
+    // Start Felix Injects Numbering MB
+    
+    printf("pix_x: %i pix_y: %i\n", currMB->pix_x, currMB->pix_y);
+    printf("block_x: %i block_y: %i\n", currMB->block_x, currMB->block_y);
+    printf("subblock_x: %i subblock_y: %i\n", currMB->subblock_x, currMB->subblock_y);
+    
+    
+    // End Felix Injects Numbering MB
+    
+    
+    
+    
   if (currMB->mb_type == 1)
   {
     if ((currMB->b8pdir[0] == list || currMB->b8pdir[0]== BI_PRED))//has forward vector
@@ -400,6 +412,15 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
 
       curr_mv.mv_x = (short)(curr_mvd[0] + pred_mv.mv_x);  // compute motion vector x
       curr_mv.mv_y = (short)(curr_mvd[1] + pred_mv.mv_y);  // compute motion vector y
+        
+        
+        // Start Felix Injects, Motion Vector
+        printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
+        
+        
+        // End Felix Injects
+        
+        
 
       for(jj = j4; jj < j4 + step_v0; ++jj)
       {
@@ -478,7 +499,17 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
               }
 
               curr_mv.mv_x = (short)(curr_mvd[0] + pred_mv.mv_x);  // compute motion vector 
-              curr_mv.mv_y = (short)(curr_mvd[1] + pred_mv.mv_y);  // compute motion vector 
+              curr_mv.mv_y = (short)(curr_mvd[1] + pred_mv.mv_y);  // compute motion vector
+                
+                
+                
+                
+                // Start Felix Injects, Motion Vector
+                printf("mv_x: %i mv_y %i\n", curr_mv.mv_x, curr_mv.mv_y);
+                
+                
+                // End Felix Injects
+                
 
               for(jj = j4; jj < j4 + step_v; ++jj)
               {
@@ -508,6 +539,15 @@ static void readMBMotionVectors (SyntaxElement *currSE, DataPartition *dP, Macro
       }
     }
   }
+    
+    
+    // Start Felix Injects Add Space
+    
+    printf("\n\n");
+    
+    
+    
+    // End Felix Injects Add Space
 }
 
 void invScaleCoeff(Macroblock *currMB, int level, int run, int qp_per, int i, int j, int i0, int j0, int coef_ctr, const byte (*pos_scan4x4)[2], int (*InvLevelScale4x4)[4])
