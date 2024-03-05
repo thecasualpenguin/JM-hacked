@@ -201,6 +201,7 @@
 		71927E391472DFE1000AB618 /* parsetcommon.c in Sources */ = {isa = PBXBuildFile; fileRef = 71927E1D1472DFE1000AB618 /* parsetcommon.c */; };
 		71927E3A1472DFE1000AB618 /* transform.c in Sources */ = {isa = PBXBuildFile; fileRef = 71927E1E1472DFE1000AB618 /* transform.c */; };
 		71927E3B1472DFE1000AB618 /* win32.c in Sources */ = {isa = PBXBuildFile; fileRef = 71927E1F1472DFE1000AB618 /* win32.c */; };
+		7AA346312B950A3B00FB5FED /* felix.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AA346302B950A3B00FB5FED /* felix.c */; };
 		C548919A183D2914001D41AE /* md_high_updated.c in Sources */ = {isa = PBXBuildFile; fileRef = C5489199183D2914001D41AE /* md_high_updated.c */; };
 		C5CD63BF185285B3005ED0FB /* me_hme.c in Sources */ = {isa = PBXBuildFile; fileRef = C5CD63BD185285B3005ED0FB /* me_hme.c */; };
 		C5CD63C0185285B3005ED0FB /* hme_distortion.c in Sources */ = {isa = PBXBuildFile; fileRef = C5CD63BE185285B3005ED0FB /* hme_distortion.c */; };
@@ -613,6 +614,7 @@
 		71927E1E1472DFE1000AB618 /* transform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = transform.c; sourceTree = "<group>"; };
 		71927E1F1472DFE1000AB618 /* win32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = win32.c; sourceTree = "<group>"; };
 		7AA3462F2B9300B200FB5FED /* felix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = felix.h; sourceTree = "<group>"; };
+		7AA346302B950A3B00FB5FED /* felix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = felix.c; sourceTree = "<group>"; };
 		8DD76FB20486AB0100D96B5E /* lencod */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lencod; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5489199183D2914001D41AE /* md_high_updated.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = md_high_updated.c; path = lencod/src/md_high_updated.c; sourceTree = "<group>"; };
 		C5CD63BD185285B3005ED0FB /* me_hme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = me_hme.c; path = lencod/src/me_hme.c; sourceTree = "<group>"; };
@@ -1099,6 +1101,7 @@
 				71927D701472DF98000AB618 /* errorconcealment.c */,
 				71927D711472DF98000AB618 /* filehandle.c */,
 				7AA3462F2B9300B200FB5FED /* felix.h */,
+				7AA346302B950A3B00FB5FED /* felix.c */,
 				71927D721472DF98000AB618 /* fmo.c */,
 				71927D731472DF98000AB618 /* header.c */,
 				71927D741472DF98000AB618 /* image.c */,
@@ -1274,6 +1277,7 @@
 				71927D9B1472DF98000AB618 /* block.c in Sources */,
 				71927D9C1472DF98000AB618 /* cabac.c in Sources */,
 				71927D9D1472DF98000AB618 /* configfile.c in Sources */,
+				7AA346312B950A3B00FB5FED /* felix.c in Sources */,
 				71927D9E1472DF98000AB618 /* context_ini.c in Sources */,
 				71927D9F1472DF98000AB618 /* dec_statistics.c in Sources */,
 				71927DA01472DF98000AB618 /* decoder_test.c in Sources */,

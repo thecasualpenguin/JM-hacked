@@ -19,6 +19,7 @@
 #include "win32.h"
 #include "h264decoder.h"
 #include "configfile.h"
+#include "felix.h"
 
 #define DECOUTPUT_TEST      0
 
@@ -240,6 +241,15 @@ int main(int argc, char **argv)
   }
 
   //decoding;
+    
+    // Felix Injects some header information for output file
+    char *header = "frame_num, loc_x, loc_y, motion_x, motion_y, src\n";
+    write_to_file(-1, header);
+    
+    // End Felix Injects some header information for output file
+    
+    
+    
   do
   {
 //      fprintf(stdout, "Reached Here FIRST\n");

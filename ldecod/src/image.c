@@ -2006,81 +2006,19 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
     // FELIX INJECTS before dec_picture is reset to NULL
     
     
+    
     //        struct pic_motion_params **mv_info = (*dec_picture)->mv_info;
 //    __builtin_dump_struct((*dec_picture), &printf);
-    
-    fprintf(stdout, "TIS WORKING???");
     
 //    for (int i = 0; i < 12; i++) {
 //        fprintf(stdout, "%i", p_Vid->pNextSlice->qmatrix[i]);
 //    }
     
     
+    extract_mvs_and_write_to_file_std(dec_picture);
+    
+    
 //    fprintf(stdout, "%i", p_Vid->pNextSlice->InvLevelScale4x4_Intra[]);
-    
-    fprintf(stdout, "\n");
-    
-    
-    int mv[3];
-    int mm, nn;
-    int i=0;
-    int j, y, x, mb_height, mb_width, ii=0, jj=0;
-    int multiplier;
-    
-    mb_width = (*dec_picture)->PicWidthInMbs;
-    mb_height = (*dec_picture)->PicSizeInMbs/(*dec_picture)->PicWidthInMbs;
-    
-//    fprintf(stdout, "MB_WIDTH: %d MB_HEIGHT: %d\n", mb_width, mb_height);
-    
-    multiplier = BLOCK_SIZE;
-    
-    int cnt = 1;
-    for(i=0;i<mb_height*4;i++)
-    {
-        
-        // writing each line of video as one line to file
-        int size_of_buf = 1000;
-        char *buf = malloc(size_of_buf*sizeof(char));
-        char *line_buf;
-        
-        mm = i * BLOCK_SIZE;
-        for(j=0;j<mb_width*4;j++)
-        {
-            
-            fprintf(stdout, "cnt: %d\n", cnt++);
-            
-            nn = j * BLOCK_SIZE;
-            
-            mv[0] = (*dec_picture)->mv_info[i][j].mv[LIST_0].mv_x ;
-            mv[1] = (*dec_picture)->mv_info[i][j].mv[LIST_0].mv_y ;
-            mv[2] = (*dec_picture)->mv_info[i][j].ref_idx[LIST_0] ;
-            
-            // so mv[2], I have no idea what it does, so we're ignoring.
-            fprintf(stdout, "List 0 - x: %i y: %i   |\n", mv[0], mv[1]);
-            
-            mv[0] = (*dec_picture)->mv_info[i][j].mv[LIST_1].mv_x ;
-            mv[1] = (*dec_picture)->mv_info[i][j].mv[LIST_1].mv_y ;
-            mv[2] = (*dec_picture)->mv_info[i][j].ref_idx[LIST_1] ;
-            
-            fprintf(stdout, "List 1 - x: %i y: %i   |\n", mv[0], mv[1]);
-            
-            
-            // this is where we write to file, nicely formatted for later use
-             sprintf(buf, "(%i,%i) ", mv[0], mv[1]);     // only writing MV from prev reference frame
-            write_to_file(size_of_buf, buf);
-            
-//            line_buf = concat(line_buf, buf);
-        }
-//        write_to_file(size_of_buf, buf);
-        write_to_file(2, "\n");
-    }
-    
-    write_to_file(3, "\n\n");
-    
-    
-     
-     
-    fprintf(stdout, "TIS WORKING 2 ???");
     
      
 //        fprintf(stdout, "%u", (*mv_info)->mv[0] )  ;
@@ -2185,6 +2123,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
         // Meaning, everything that needs to be extracted
         // has been extracted at this point
         // and I could just parse the structures and get decoded info, in complete form
+        
         
       SNRParameters   *snr = p_Vid->snr;
       if (p_Vid->p_ref != -1)
@@ -2302,7 +2241,7 @@ void ercWriteMBMODEandMV(Macroblock *currMB)
     char *buf = malloc(size_of_buf*sizeof(char));
     
     sprintf(buf, "frame_num: %i frame_poc: %i display_order: %i\n", dec_picture->frame_num, dec_picture->frame_poc, dec_picture->frame_poc/2);
-    /*write_to_file*/(100, buf);
+    // write_to_file(100, buf);
     
     
     snprintf(buf, size_of_buf, "x: %d y: %d | pix_c_x: %d pix_c_y: %d | block_x: %d block_y: %d | mb_x: %d mb_y: %d \n",
