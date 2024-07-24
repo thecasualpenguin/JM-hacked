@@ -1351,7 +1351,7 @@ int encode_one_frame (VideoParameters *p_Vid, InputParameters *p_Inp)
       + (int)( p_Vid->p_Stats->bit_ctr_filler_data - p_Vid->p_Stats->bit_ctr_filler_data_n );
 
     if ( p_Inp->RCUpdateMode <= MAX_RC_MODE )
-      p_Vid->rc_update_pict_frame_ptr(p_Vid, p_Inp, p_Vid->p_rc_quad, p_Vid->p_rc_gen, bits);
+      p_Vid->rc_update_pict_frame_ptr(p_Vid, p_Inp, p_Vid->p_rc_quad, p_Vid->p_rc_gen, bits); 
 
   }
 

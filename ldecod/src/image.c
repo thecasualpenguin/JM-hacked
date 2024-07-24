@@ -2016,6 +2016,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
     
     
     extract_mvs_and_write_to_file_std(dec_picture);
+//    printf("frame_ctr: %i\n", p_Vid->snr->frame_ctr);
     
     
 //    fprintf(stdout, "%i", p_Vid->pNextSlice->InvLevelScale4x4_Intra[]);
